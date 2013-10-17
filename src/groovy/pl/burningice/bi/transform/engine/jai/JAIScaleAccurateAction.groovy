@@ -22,33 +22,17 @@ THE SOFTWARE.
 
 package pl.burningice.bi.transform.engine.jai
 
-import com.sun.media.jai.codec.ByteArraySeekableStream
-import com.sun.media.jai.codec.SeekableStream
 import pl.burningice.bi.transform.engine.api.CropAction
 import pl.burningice.bi.transform.engine.api.ScaleAccurateAction
 import pl.burningice.bi.transform.file.ImageFile
 import pl.burningice.bi.transform.file.ImageFileFactory
 
-import javax.media.jai.InterpolationNearest
-import javax.media.jai.JAI
-import javax.media.jai.RenderedOp
 import java.awt.image.BufferedImage
-import java.awt.image.renderable.ParameterBlock
 
-public class JAIScaleAccurateAction implements ScaleAccurateAction {
+public class JAIScaleAccurateAction extends JAIScaleAction implements ScaleAccurateAction {
 
     BufferedImage scaleAccurate(final ImageFile loadedImage, final ScaleAccurateAction.ScaleAccurateParams params) {
-        SeekableStream stream = new ByteArraySeekableStream(loadedImage.byteArray)
-        RenderedOp image = JAI.create('stream', stream)
-
-        if (params.width > image.width && params.height > image.height) {
-            return image.getAsBufferedImage()
-        }
-
-        double scaleX = params.width / image.width
-        double scaleY = params.height / image.height
-        double targetScale = scaleX < scaleY ? scaleY : scaleX
-        BufferedImage scaledImage = doBySubsampleAverage(image, targetScale).getAsBufferedImage()
+        BufferedImage scaledImage = executeScale(loadedImage, params.width, params.height)
 
         if (scaledImage.width == params.width && scaledImage.height == params.height) {
             return scaledImage
@@ -64,12 +48,8 @@ public class JAIScaleAccurateAction implements ScaleAccurateAction {
         new JAICropAction().crop(ImageFileFactory.produce(scaledImage), cropParams)
     }
 
-    private RenderedOp doBySubsampleAverage(final RenderedOp image, final double scale) {
-        ParameterBlock scaleParams = new ParameterBlock();
-        scaleParams.addSource(image)
-        scaleParams.add(scale)
-        scaleParams.add(scale)
-        scaleParams.add(new InterpolationNearest())
-        JAI.create('SubsampleAverage', scaleParams, null)
+    @Override
+    protected boolean determineTargetScale(double scaleX, double scaleY) {
+        return scaleX < scaleY
     }
 }

@@ -22,55 +22,20 @@ THE SOFTWARE.
 
 package pl.burningice.bi.transform.engine.jai
 
-import com.sun.media.jai.codec.ByteArraySeekableStream
-import com.sun.media.jai.codec.SeekableStream
 import pl.burningice.bi.transform.engine.api.ScaleApproximateAction
 import pl.burningice.bi.transform.engine.api.ScaleApproximateAction.ScaleApproximateParams
 import pl.burningice.bi.transform.file.ImageFile
 
-import javax.media.jai.InterpolationNearest
-import javax.media.jai.JAI
-import javax.media.jai.RenderedOp
 import java.awt.image.BufferedImage
-import java.awt.image.renderable.ParameterBlock
 
-public class JAIScaleApproximateAction implements ScaleApproximateAction {
+public class JAIScaleApproximateAction extends JAIScaleAction implements ScaleApproximateAction {
 
     BufferedImage scaleApproximate(final ImageFile loadedImage, final ScaleApproximateParams params) {
-        SeekableStream stream = new ByteArraySeekableStream(loadedImage.byteArray)
-        RenderedOp image = JAI.create('stream', stream)
-
-        if (params.width > image.width && params.height > image.height) {
-            return image.getAsBufferedImage()
-        }
-
-        double scaleX = params.width / image.width
-        double scaleY = params.height / image.height
-        double targetScale = scaleX > scaleY ? scaleY : scaleX
-        return doScale(image, targetScale).getAsBufferedImage()
+        return executeScale(loadedImage, params.width, params.height)
     }
 
-    private RenderedOp doScale(final RenderedOp image, final double targetScale) {
-        doBySubsampleAverage(image, targetScale)
-    }
-
-    private RenderedOp doByScale(final RenderedOp image, final double scale) {
-        ParameterBlock scaleParams = new ParameterBlock();
-        scaleParams.addSource(image);
-        scaleParams.add((float) scale);
-        scaleParams.add((float) scale);
-        scaleParams.add(0.0f);
-        scaleParams.add(0.0f);
-        scaleParams.add(new InterpolationNearest());
-        JAI.create('scale', scaleParams, null);
-    }
-
-    private RenderedOp doBySubsampleAverage(final RenderedOp image, final double scale) {
-        ParameterBlock scaleParams = new ParameterBlock();
-        scaleParams.addSource(image)
-        scaleParams.add(scale)
-        scaleParams.add(scale)
-        scaleParams.add(new InterpolationNearest())
-        JAI.create('SubsampleAverage', scaleParams, null)
+    @Override
+    protected boolean determineTargetScale(double scaleX, double scaleY) {
+        return scaleX > scaleY
     }
 }
