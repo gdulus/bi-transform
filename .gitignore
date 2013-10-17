@@ -10,5 +10,8 @@ target
 /plugins
 /web-app/plugins
 /web-app/WEB-INF/classes
-/web-app/upload/*
+/web-app/upload/*.jpg
+/web-app/upload/*.png
+/web-app/upload/*.bmp
+/web-app/upload/*.gif
 /.idea
