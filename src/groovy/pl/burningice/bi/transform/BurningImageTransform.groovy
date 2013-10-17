@@ -21,41 +21,47 @@ THE SOFTWARE.
 */
 package pl.burningice.bi.transform
 
-import org.apache.commons.lang.Validate
 import org.springframework.web.multipart.MultipartFile
+import pl.burningice.bi.transform.engine.EnginesRepository
+import pl.burningice.bi.transform.engine.api.Engine
+import pl.burningice.bi.transform.file.ImageFileFactory
+import pl.burningice.bi.transform.utils.ConfigUtils
 
-/**
- * Main entry for the plugin
- *
- * @author pawel.gdula@burningice.pl
- */
 class BurningImageTransform {
 
-    def execute(final String filePath) {
-        Validate.notEmpty((String) filePath, 'Path to source file must be provided')
-        execute(new File(filePath))
-    }
+    EnginesRepository enginesRepository
 
-    def execute(final File file) {
-        Validate.notNull(file, 'Source file must be provided')
-
-    }
-
-    def execute(MultipartFile file) {
-        Validate.notNull(file, 'Uploaded image is null')
-        Validate.notEmpty(file, 'Uploaded image is empty')
-
-    }
-
-    private def getWorker(file, resultDir) {
-        if (!(new File(resultDir).exists())) {
-            throw new FileNotFoundException("There is no output ${resultDir} directory")
+    public TransformChain on(final String filePath) {
+        if (!filePath) {
+            throw new IllegalArgumentException('Path to source file must be provided')
         }
 
-        if (resultDir[-1] == '/') {
-            resultDir = resultDir[0..-2]
+        on(new File(filePath))
+    }
+
+    public TransformChain on(final File file) {
+        if (!file) {
+            throw new IllegalArgumentException('Source file must be provided')
         }
 
+        if (!file.exists()) {
+            throw new FileNotFoundException("Can't find file in path ${file.absolutePath}")
+        }
 
+        Engine engine = enginesRepository.get(ConfigUtils.engine)
+        return new TransformChain(new TransformResult(), engine, ImageFileFactory.produce(file))
+    }
+
+    public TransformChain on(final MultipartFile file) {
+        if (file == null) {
+            throw new IllegalArgumentException('Uploaded file must be provided')
+        }
+
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException('Uploaded image is empty')
+        }
+
+        Engine engine = enginesRepository.get(ConfigUtils.engine)
+        return new TransformChain(new TransformResult(), engine, ImageFileFactory.produce(file))
     }
 }

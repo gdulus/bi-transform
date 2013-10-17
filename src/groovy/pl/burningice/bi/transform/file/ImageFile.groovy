@@ -4,7 +4,7 @@ import javax.imageio.ImageIO
 import java.awt.*
 import java.awt.image.BufferedImage
 
-abstract class ImageFile {
+final class ImageFile {
 
     final byte[] byteArray
 
