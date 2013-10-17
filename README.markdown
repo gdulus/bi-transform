@@ -1,14 +1,11 @@
-BI is Grails plugin for image manipulation and image upload handling. Current version allows:
+BI-Transform is a new version of BurningImage plugin. This plugin focus on providing infrastructure for:
 
- * use of JAI or ImageMagick rendering engines
+ * use of JAI or JMagick rendering engines
  * scale image with approximate width and height
  * scale image with accurate width and height
  * add image watermark
  * crop image
  * write text on image
- * mark domain class as file image container by using @FileImageContainer annotation
- * mark domain class as DB image container by using @DBImageContainer annotation
- * save image binded to domain class by using !ImageUpladService
- * validate uploaded image
-
-It allows to update files stored on server and uploaded as a MultipartFile. Operations could be chained and executed in random order.
+ * extensive architecture allowing to overwrite existing or introduce new one engines.
+ * update files stored on server and uploaded as a MultipartFile
+ * operations could be chained and executed in random order
